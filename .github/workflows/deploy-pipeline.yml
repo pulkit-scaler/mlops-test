@@ -101,22 +101,22 @@ jobs:
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1
+        env:
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: API_IMAGE_NAME,DASHBOARD_IMAGE_NAME,IMAGE_TAG,AWS_ACCOUNT_ID,AWS_REGION
-        env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        script: |
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-          docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$API_IMAGE_NAME:$IMAGE_TAG
-          docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DASHBOARD_IMAGE_NAME:$IMAGE_TAG
-          cd ~/mlops-model-serving || true
-          docker compose -f docker-compose.deploy.yml down || true
-          export ML_API_IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$API_IMAGE_NAME:$IMAGE_TAG
-          export ML_DASHBOARD_IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DASHBOARD_IMAGE_NAME:$IMAGE_TAG
-          docker compose -f docker-compose.deploy.yml up -d
-          sleep 10
-          docker ps
+          script: |
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+            docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$API_IMAGE_NAME:$IMAGE_TAG
+            docker pull $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DASHBOARD_IMAGE_NAME:$IMAGE_TAG
+            cd ~/mlops-model-serving || true
+            docker compose -f docker-compose.deploy.yml down || true
+            export ML_API_IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$API_IMAGE_NAME:$IMAGE_TAG
+            export ML_DASHBOARD_IMAGE=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DASHBOARD_IMAGE_NAME:$IMAGE_TAG
+            docker compose -f docker-compose.deploy.yml up -d
+            sleep 10
+            docker ps
